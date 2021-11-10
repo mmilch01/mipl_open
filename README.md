@@ -2,7 +2,7 @@
 Medical image processing and conversion tools developed at Neuroinformatics Lab Washington University St Louis
 
 ## Prerequisites
-Prior to compilitng, download the <a href="https://dicom.offis.de">DCMTK 3.6.6</a> library and unzip to 'dcmtk' directory under the source root.
+Prior to compilitng, download and build the <a href="https://dicom.offis.de">DCMTK 3.6.6</a> library. Put the build in 'dcmtk' directory under the source root.
 
 ## Compiling
 ### Visual Studio 2019:
