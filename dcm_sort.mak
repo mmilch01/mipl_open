@@ -6,11 +6,15 @@ include dcmlib.def
 
 CXXSRCS	= ${PROG}.cpp
 OBJS	= ${CXXSRCS:.cpp=.o}
-
-LIBOBJS	= ${NMOBJS} ${TRXOBJS} ${DLIBOBJS} ${MLIB3OBJS} ${DCMLIBOBJS}
-
 CXX = c++
-CXXFLAGS = -O2 -fpermissive -Wno-deprecated  -I $(TRXDIR) -I $(MLIB3DIR) ${DCMTK_INCLUDES}
+
+ifeq ($(USE_4DFP),ON)
+	LIBOBJS	= ${NMOBJS} ${TRXOBJS} ${DLIBOBJS} ${MLIB3OBJS} ${DCMLIBOBJS}
+	CXXFLAGS = -O2 -fpermissive -Wno-deprecated  -I $(TRXDIR) -I $(MLIB3DIR) ${DCMTK_INCLUDES} -D_4DFP
+else
+	LIBOBJS = ${NMOBJS} ${DLIBOBJS} ${MLIB3OBJS} ${DCMLIBOBJS}
+	CXXFLAGS = -O2 -fpermissive -Wno-deprecated  -I $(MLIB3DIR) ${DCMTK_INCLUDES}
+endif
 
 $(PROG): ${OBJS} ${LIBOBJS}
 	$(CXX) ${DCMTK_CXXFLAGS} $(CXXFLAGS) ${DCMTK_LIBDIRS} -o $@ ${OBJS} ${LIBOBJS} ${DCMTK_LIBS}

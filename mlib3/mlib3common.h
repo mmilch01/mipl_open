@@ -14,12 +14,6 @@ BY DOWNLOADING THIS SOFTWARE YOU AGREE THAT THE SOFTWARE PROVIDED HEREUNDER IS E
 #include <string.h>
 #include <algorithm>
 
-#ifndef _WIN32
-#ifndef _4DFP
-#define _4DFP
-#endif
-#endif
-
 #ifdef _4DFP
 extern unsigned char    __ctype[];
 #endif

@@ -1,6 +1,3 @@
-//#ifndef _4DFP 
-//#define _4DFP
-//#endif
 #ifndef _WIN32
 #if !defined(HAVE_CONFIG_H)
 #define HAVE_CONFIG_H

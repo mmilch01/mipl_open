@@ -1,0 +1,20 @@
+DCMLIBDIR		= dcmlib
+
+DCMLIBSRC		= ${DCMLIBDIR}/dcmlib.cpp
+DCMLIBOBJS		= ${DCMLIBSRC:.cpp=.o}
+
+DCMTKDIR		= dcmtk
+DCMTK_dcmdatadir	= ${DCMTKDIR}/dcmdata
+DCMTK_ofstddir 		= ${DCMTKDIR}/ofstd
+DCMTK_oflogdir		= ${DCMTKDIR}/oflog
+
+#DCMTK_LIBDIRS	= -L${DCMTK_dcmdatadir}/libsrc -L${DCMTK_oflogdir}/libsrc -L${DCMTK_ofstddir}/libsrc
+#DCMTK_LIBDIRS	= -L${DCMTK_dcmdatadir}/libsrc -L${DCMTK_ofstddir}/libsrc
+DCMTK_LIBDIRS	= -L${DCMTKDIR}/lib
+
+DCMTK_LIBS	= -ldcmdata -loflog -lofstd -lrt -lpthread -lnsl -lm
+
+#DCMTK_INCLUDES = -I ${DCMTK_ofstddir}/include -I ${DCMTK_dcmdatadir}/include -I ${DCMTK_oflogdir}/include -I ${DCMTKDIR}/config/include
+DCMTK_INCLUDES = -I ${DCMTK_ofstddir}/include -I ${DCMTK_dcmdatadir}/include -I ${DCMTKDIR}/config/include -I ${DCMTK_oflogdir}/include
+
+DCMTK_CXXFLAGS = -D_REENTRANT -D_XOPEN_SOURCE_EXTENDED -D_XOPEN_SOURCE=500 -D_BSD_SOURCE -D_BSD_COMPAT -D_OSF_SOURCE -D_POSIX_C_SOURCE=199506L
