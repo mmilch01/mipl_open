@@ -34,11 +34,7 @@ static bool g_bSC=false;
 static int g_Max=-1;
 using namespace dcmlib;
 
-//static float g_minThreshold=4.0;
-//static float g_maxThreshold=1e+20;
-//static float g_minOpacity=0.3;
-//static float g_maxOpacity=0.8;
-//static float g_PatternContrast=0.2;
+
 static int	 g_Origin[3]={0,0,0};
 
 static const int _MSG_ERROR=0;

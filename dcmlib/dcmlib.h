@@ -40,30 +40,6 @@ typedef struct
 	//slice location for the 1st slice in dataset.
 	double slx,sly,slz;
 } _3DINFO;
-/*
-bool InitSlice(Volume& v,DcmDataset *dataset, int z);
-bool SaveVolFrameDCM(const char* fname, DcmFileFormat* fformat, Volume& v, int frame);
-bool ReadDcmImage(std::string& fname, DcmFileFormat& dff, Volume &v);
-int	ExtractFrames(ML3Array<DcmFileFormat*>& ff, std::vector<ML3Array<DcmFileFormat*> >& frames);
-int CompareSliceLocations(DcmFileFormat*& f1, DcmFileFormat*& f2);
-int CompareInstanceNumbers(DcmFileFormat*& f1, DcmFileFormat*& f2);
-int CompareEchos(DcmFileFormat*& f1, DcmFileFormat*& f2);
-bool PreceedsSliceLocation(DcmFileFormat*& f1, DcmFileFormat*& f2);
-bool PreceedsInstanceNumber(DcmFileFormat*& f1, DcmFileFormat*& f2);
-bool PreceedsEchoNumber(DcmFileFormat*& f1, DcmFileFormat*& f2);
-int find_vol(DcmFileFormat* dff, std::vector<int>& stind);
-
-double GetSliceLocation(DcmFileFormat*& f);
-int	GetEchoNumber(DcmFileFormat*& f);
-bool ExtractFloatArray(DcmDataset* dataset, const DcmTagKey& key, double* arr, int sz);
-//
-int GetInstanceNumber(DcmFileFormat*& f);
-
-bool Is16bpp(DcmDataset* dataset);
-bool IsMultiFrame(ML3Array<DcmFileFormat*>& ff, long &nFrames);
-bool SaveNewDcmFile(char* fname, DcmFileFormat* fformat, char* serInstUID, int frame, bool bMakeSC,vector< vector<std::string> >* modifyTags=NULL);
-void GenerateUID(char* buf);
-*/
 
 int GetInstanceNumber(DcmFileFormat*& f);
 void GenerateUID(char* buf);
@@ -72,7 +48,7 @@ double ExtractFloat(DcmDataset* dataset, const DcmTagKey& key);
 
 OFCondition LoadDcmFile(char* file, DcmFileFormat& format);
 
-//bool InitOrientationData(ML3Array<DcmFileFormat*>& dcmFiles, Volume& v, _3DINFO& S0, _3DINFO& S1, bool bRescale);
+
 void ReadDcmDir(FileList& fl, ML3Array<DcmFileFormat*>& fformat, char* dir, char* serInstUID, bool bAll, bool bQuiet);
 void ReadDcmDir(FileList& fl, ML3Array<DcmFileFormat*>& fformat, char* dir, char* serInstUID, bool bAll);
 
