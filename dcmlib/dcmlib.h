@@ -35,12 +35,19 @@ typedef struct
 	double ex1,ex2,ex3,ey1,ey2,ey3,ez1,ez2,ez3;
 	//image position (DICOM) for the middle slice;
 	double xm,ym,zm;
-	//volume center (in patient coordinates)	
+	//volume center (in patient coordinates)
 	//double xc,yc,zc;
 	//slice location for the 1st slice in dataset.
 	double slx,sly,slz;
 } _3DINFO;
 
+bool InitSlice(Volume& v, DcmDataset* dataset, int z);
+double GetSliceLocation(DcmFileFormat*& f);
+int CompareInstanceNumbers(DcmFileFormat*& f1, DcmFileFormat*& f2);
+int CompareSliceLocations(DcmFileFormat*& f1, DcmFileFormat*& f2);
+void DetectDcmFrameFormat(ML3Array<DcmFileFormat*>& fformat, std::vector<int>& file_formats, \
+	bool& is_mixed_format, bool& is_single_frame, bool& is_format_undefined);
+bool Dcm2Vol(ML3Array<DcmFileFormat*>& ff, Volume*& v, int& nVols, bool bQuiet = false);
 int GetInstanceNumber(DcmFileFormat*& f);
 void GenerateUID(char* buf);
 int CompareSliceLocations(DcmFileFormat*& f1, DcmFileFormat*& f2);

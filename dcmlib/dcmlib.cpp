@@ -253,5 +253,153 @@ bool SaveNewDcmFile(char* fname, DcmFileFormat* fformat, char* serInstUID, int f
 	ofc = fformat->saveFile(lfname);
 	return (!ofc.bad());
 }
+void DetectDcmFrameFormat(ML3Array<DcmFileFormat*>& fformat, std::vector<int>& file_formats, \
+	bool& is_mixed_format, bool& is_single_frame, bool& is_format_undefined) {
+	DcmDataset* dataset;
+	OFCondition ofc;
+	int nFrames, common_format = 0;
+	enum Formats { Format_Undefined = 1, Format_SingleFrame = 2, Format_MultiFrame = 4 };
+	Formats fmt;
+	is_mixed_format = false;
+	is_single_frame = false;
+	is_format_undefined = false;
+
+	for (int i = 0; i < fformat.GetSize(); i++)
+	{
+		dataset = fformat[i]->getDataset();
+		// now check number of frames per file.
+		ofc = dataset->findAndGetSint32(DCM_NumberOfFrames, nFrames);
+		if (ofc.bad()) fmt = Format_SingleFrame;
+		else if (nFrames == 1) fmt = Format_SingleFrame;
+		else fmt = Format_MultiFrame;
+		file_formats.push_back(fmt);
+		common_format |= fmt;
+	}
+	switch (common_format)
+	{
+	case 1: is_single_frame = true; return;
+	case 2: is_single_frame = true; return;
+	case 4: is_single_frame = false; return;
+	default: is_mixed_format = true; return;
+	}
+}
+bool Dcm2Vol(ML3Array<DcmFileFormat*>& ff, Volume*& v, int& nVols, bool bQuiet/*=false*/)
+{
+	//	int num=GetInstanceNumber(ff[0]);
+	unsigned short imHt, imWid;
+	int mode = dcmlib::COMPARE_SLICE_LOCATION;
+
+	DcmDataset* dataset = ff[0]->getDataset();
+	dataset->findAndGetUint16(DCM_Rows, imHt);
+	dataset->findAndGetUint16(DCM_Columns, imWid);
+
+	unsigned short par1 = 0, par2 = 0;
+	dataset->findAndGetUint16(DCM_BitsAllocated, par1);
+	dataset->findAndGetUint16(DCM_SamplesPerPixel, par2);
+	if (par1 != 16 || par2 != 1)
+	{
+		cout << "Current BitsAllocated: " << par1 << " (supported 16) , SamplesPerPixel: " << par2 << "supported 1" << endl;
+		return false;
+	}
+	std::vector<int> file_formats, instInVol_arr, nFrames_arr;
+	bool is_mixed_format, is_single_frame, is_format_undefined;
+	DetectDcmFrameFormat(ff, file_formats, is_mixed_format, is_single_frame, is_format_undefined);
+	if (!is_single_frame) return false;
+
+	std::vector<ML3Array<DcmFileFormat*> > vols;
+
+	// check if the image is multi frame
+	long nFrames = 1, nFiles, instInVol = -1;
+	nFiles = ff.GetSize();	
+	nVols = 1;
+
+	instInVol = vols[0].GetSize();
+	ff.Sort(CompareSliceLocations);
+	if (!bQuiet) cout << "Extracting pixels from DICOM..." << endl;
+	v = new Volume[nVols];
+	v[0].InitMemory(imWid, imHt, nFiles);
+
+	for (int i = 0; i < nVols; i++)
+		v[i].InitMemory(imWid, imHt, nFiles);
+
+	for (int j = 0; j < nVols; j++)
+	{
+		for (int z = 0; z < vols[j].GetSize(); z++)
+		{
+			dataset = vols[j][z]->getDataset();
+			if (!InitSlice(v[j], dataset, z))
+			{
+				delete[] v;
+				return false;
+			}
+		}
+	}
+	return true;
+}
+int CompareInstanceNumbers(DcmFileFormat*& f1, DcmFileFormat*& f2)
+{
+	int num1 = GetInstanceNumber(f1);
+	int num2 = GetInstanceNumber(f2);
+	if (num1 < num2) return -1;
+	else return (num1 == num2) ? 0 : 1;
+}
+double GetSliceLocation(DcmFileFormat*& f)
+{
+	DcmDataset* dd = f->getDataset();
+	OFString ofs;
+	OFCondition ofc = dd->findAndGetOFString(DCM_SliceLocation, ofs);
+	if (ofc.bad()) return 0;
+	return atof(ofs.data());
+}
+bool InitSlice(Volume& v, DcmDataset* dataset, int z)
+{
+	unsigned char* buf;
+	unsigned char*& rbuf = buf;
+	unsigned long count;
+	//extract voxel size
+	bool bVoxSizeDefined = true;
+	double dx, dy, dz;
+	OFString ofs;
+	//extract voxel size: pixel spacing
+	OFCondition ofc = dataset->findAndGetOFStringArray(DCM_PixelSpacing, ofs);
+	do
+	{
+		if (ofc.bad()) { bVoxSizeDefined = false; break; }
+		size_t sep = ofs.find('\\');
+		if (sep == string::npos) { bVoxSizeDefined = false; break; }
+		char tmp[50];
+		strncpy(tmp, ofs.data(), sep);
+		tmp[sep] = 0;
+		dx = atof(tmp);
+		strcpy(tmp, ofs.data() + sep + 1);
+		dy = atof(tmp);
+		if (dx == 0 || dy == 0) bVoxSizeDefined = false;
+	} while (false);
+
+	//extract voxel size: slice thickness
+	ofc = dataset->findAndGetOFString(DCM_SliceThickness, ofs);
+	do
+	{
+		if (ofc.bad()) { bVoxSizeDefined = false; break; }
+		dz = atof(ofs.data());
+		if (dz == 0) bVoxSizeDefined = false;
+	} while (false);
+	if (bVoxSizeDefined) v.SetVoxelDims(dx, dy, dz);
+
+	//extract pixel array
+	ofc = dataset->findAndGetUint8Array(DCM_PixelData, (const Uint8*&)rbuf, &count);
+	if (ofc.bad()) return false;
+
+	unsigned short* ptr = (unsigned short*)buf;
+
+	for (int y = 0; y < v.SY(); y++)
+	{
+		for (int x = 0; x < v.SX(); x++)
+		{
+			v(x, y, z) = (Real)ptr[v.SX() * y + x];
+		}
+	}
+	return true;
+}
 
 }//end of namespace dcmlib.
